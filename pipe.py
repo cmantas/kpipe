@@ -1,13 +1,19 @@
 from kafka import KafkaConsumer, KafkaProducer
 import argparse
 
-SINK_TIMEOUT = 10 # how long to wait for consuming a message
+SINK_TIMEOUT = 10  # how long to wait for sending message to the sink
 
 # argument handling
 parser = argparse.ArgumentParser()
-parser.add_argument("--server", help="the bootstrap server of both the source and the sink")
-parser.add_argument("--source", help="the bootstrap server of source from which to consume (read) data")
-parser.add_argument("--sink", help="the bootstrap server of the sink to write data. (can use 'stdout')")
+parser.add_argument(
+    "--server", help="the bootstrap server of both the source and the sink"
+)
+parser.add_argument(
+    "--source", help="the bootstrap server of source from which to consume (read) data"
+)
+parser.add_argument(
+    "--sink", help="the bootstrap server of the sink to write data. (can use 'stdout')"
+)
 parser.add_argument("--topic", help="the topic of both the source and the sink")
 parser.add_argument("--source-topic")
 parser.add_argument("--sink-topic")
@@ -15,31 +21,35 @@ parser.add_argument("-n", help="How many messages to read", type=int, default=10
 args = parser.parse_args()
 
 # handle source/sink
-assert any((args.server, args.source, args.sink)), \
-    "You need to define either a server or source and sink"
-assert not (args.server and (args.source or args.sink)), \
-    "Ambiguous combination of server/source/sink"
+assert any(
+    (args.server, args.source, args.sink)
+), "You need to define either a server or source and sink"
+assert not (
+    args.server and (args.source or args.sink)
+), "Ambiguous combination of server/source/sink"
 
 if args.server and args.source is None and args.sink is None:
     args.source = args.sink = args.server
 
 
 # handle topic(s)
-assert any((args.topic, args.source_topic, args.sink_topic)), \
-    "You need to define either a common 'topic' or source/sink topic"
-assert not (args.topic and (args.source_topic or args.sink_topic)), \
-    "Ambiguous combination of server/source/sink topics"
+assert any(
+    (args.topic, args.source_topic, args.sink_topic)
+), "You need to define either a common 'topic' or source/sink topic"
+assert not (
+    args.topic and (args.source_topic or args.sink_topic)
+), "Ambiguous combination of server/source/sink topics"
 
 if args.topic and args.source_topic is None and args.sink_topic is None:
     args.source_topic = args.sink_topic = args.topic
 
 # To consume latest messages and auto-commit offsets
 
+
 def source_gen(server, topic, value_only=False):
-    src_consumer = KafkaConsumer(topic, group_id= None, bootstrap_servers=server)
+    src_consumer = KafkaConsumer(topic, group_id=None, bootstrap_servers=server)
     for message in src_consumer:
         yield message.value if value_only else message
-
 
 
 def sink_fn(server, topic):
@@ -56,4 +66,3 @@ sink = print if args.sink.lower() == "stdout" else sink_fn(args.sink, args.sink_
 for _ in range(args.n):
     message = next(source)
     sink(message)
-    
