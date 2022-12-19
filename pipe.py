@@ -58,6 +58,11 @@ def sink_fn(server, topic):
     return _sink
 
 
+print(
+    "Consuming data from {}[{}] -> {}[{}]".format(
+        args.source, args.source_topic, args.sink, args.sink_topic
+    )
+)
 
 source = source_gen(args.source, args.source_topic, value_only=True)
 
@@ -65,4 +70,5 @@ sink = print if args.sink.lower() == "stdout" else sink_fn(args.sink, args.sink_
 
 for _ in range(args.n):
     message = next(source)
+    print(">", end="")
     sink(message)
