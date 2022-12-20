@@ -51,12 +51,14 @@ assert not (
 
 
 def source_gen(server, topic, value_only=False):
+    "A generator function for reading (binary) messages"
     src_consumer = KafkaConsumer(topic, group_id=None, bootstrap_servers=server)
     for message in src_consumer:
         yield message.value if value_only else message
 
 
 def sink_fn(server, topic):
+    "Returns a function (lambda) for sending messages"
     sink_producer = KafkaProducer(bootstrap_servers=server)
     _sink = lambda msg: sink_producer.send(topic, msg).get(timeout=SINK_TIMEOUT)
     return _sink
