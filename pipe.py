@@ -43,7 +43,11 @@ assert not (
 if args.topic and args.source_topic is None and args.sink_topic is None:
     args.source_topic = args.sink_topic = args.topic
 
-# To consume latest messages and auto-commit offsets
+
+# Double check that we're not trying to read and write to the same place
+assert not (
+    (args.source_topic == args.sink_topic) and (args.source == args.sink)
+), "Attempting to read and write to the same server/topic. You probably don't want that"
 
 
 def source_gen(server, topic, value_only=False):
