@@ -59,6 +59,10 @@ def source_gen(server, topic, value_only=False):
 
 def sink_fn(server, topic):
     "Returns a function (lambda) for sending messages"
+    if server.lower() == "stdout":
+        # special handling for "stdout" sink: just print out the messages
+        return print
+
     sink_producer = KafkaProducer(bootstrap_servers=server)
     _sink = lambda msg: sink_producer.send(topic, msg).get(timeout=SINK_TIMEOUT)
     return _sink
@@ -70,9 +74,10 @@ print(
     )
 )
 
+# create a generator for reading messages
 source = source_gen(args.source, args.source_topic, value_only=True)
-
-sink = print if args.sink.lower() == "stdout" else sink_fn(args.sink, args.sink_topic)
+# create function for sending messages
+sink = sink_fn(args.sink, args.sink_topic)
 
 for _ in range(args.n):
     message = next(source)
