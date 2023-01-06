@@ -1,4 +1,6 @@
 from kafka import KafkaConsumer, KafkaProducer
+from base64 import b64encode
+import sys
 import argparse
 
 SINK_TIMEOUT = 10  # how long to wait for sending message to the sink
@@ -62,6 +64,9 @@ def sink_fn(server, topic):
     if server.lower() == "stdout":
         # special handling for "stdout" sink: just print out the messages
         return print
+    elif server.lower() == "stdout64":
+        # special handling for "stdout64" sink: print the messages in a base64 encoding
+        return lambda bites: print(str(b64encode(message), "utf-8"))
 
     sink_producer = KafkaProducer(bootstrap_servers=server)
     _sink = lambda msg: sink_producer.send(topic, msg).get(timeout=SINK_TIMEOUT)
@@ -71,7 +76,7 @@ def sink_fn(server, topic):
 print(
     "Consuming data from {}[{}] -> {}[{}]".format(
         args.source, args.source_topic, args.sink, args.sink_topic
-    )
+    ), file=sys.stderr
 )
 
 # create a generator for reading messages
@@ -81,5 +86,5 @@ sink = sink_fn(args.sink, args.sink_topic)
 
 for _ in range(args.n):
     message = next(source)
-    print(">", end="")
+    print(">", end="", file=sys.stderr)
     sink(message)
