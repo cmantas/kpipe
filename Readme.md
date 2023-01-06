@@ -39,7 +39,7 @@ The following arguments are available
 
 - `-n` : the number of messages we will pipe (default is 10)
 - `--source` : the source (input) kafka bootstrap server we will be reading from (optionally with port)
-- `--sink` : the sink (output) kafka bootstrap server we will be writing to (optional port)
+- `--sink` : the sink (output) kafka bootstrap server we will be writing to (optional port). Note: you can use `stdout` and `stdout64`
 - `--source-topic` : the topic to read from
 - `--sink-topic` : the topic to write to
 - `--server` : use this as shorthand if `--source` and `--sink` are the same server
@@ -71,5 +71,10 @@ $ kpipe \
 	--source a-kafka-bootstrap.domain.com \
 	--sink another-kafka-bootstrap.foo.com \
 	-n 3 
+```
+Example writing to stdout in a base64 format
+
+``` shell
+$ kpipe --source a-kafka-bootstrap.domain.com --topic topic_name --sink stdout64
 ```
 
