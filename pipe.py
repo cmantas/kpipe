@@ -19,6 +19,7 @@ parser.add_argument(
 parser.add_argument("--topic", help="the topic of both the source and the sink")
 parser.add_argument("--source-topic")
 parser.add_argument("--sink-topic")
+parser.add_argument("--from-beginning", action="store_true", help="Read from the beginning of the topic")
 parser.add_argument("-n", help="How many messages to read", type=int, default=10)
 args = parser.parse_args()
 
@@ -52,9 +53,9 @@ assert not (
 ), "Attempting to read and write to the same server/topic. You probably don't want that"
 
 
-def source_gen(server, topic, value_only=False):
+def source_gen(server, topic, value_only=False, from_beginning=False):
     "A generator function for reading (binary) messages"
-    src_consumer = KafkaConsumer(topic, group_id=None, bootstrap_servers=server)
+    src_consumer = KafkaConsumer(topic, group_id=None, bootstrap_servers=server, auto_offset_reset='earliest' if from_beginning else 'latest')
     for message in src_consumer:
         yield message.value if value_only else message
 
@@ -80,7 +81,7 @@ print(
 )
 
 # create a generator for reading messages
-source = source_gen(args.source, args.source_topic, value_only=True)
+source = source_gen(args.source, args.source_topic, value_only=True, from_beginning=args.from_beginning)
 # create function for sending messages
 sink = sink_fn(args.sink, args.sink_topic)
 
